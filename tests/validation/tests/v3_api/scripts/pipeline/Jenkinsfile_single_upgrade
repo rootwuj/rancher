@@ -88,38 +88,8 @@ node {
           sh "./tests/validation/tests/v3_api/scripts/build.sh"
         }
 
-        stage('Deploy Rancher server') {
-          try {
-            sh "docker run --name ${containerPrefix}_deploy -t --env-file .env " +
-                "${imageName} /bin/bash -c \'" +
-                "pytest -v -s --junit-xml=deploy.xml " +
-                "-k test_deploy_rancher_server ${testsDir}\'"
 
-                sh "docker cp ${containerPrefix}_deploy:${rootPath}${testsDir}${rancherConfig} ."
-                load rancherConfig
-          } catch(err) {
-            buildFail = true
-            echo "Error: " + err
-            echo "Deploy Rancher server failed"
-            currentBuild.result = 'FAILURE'
-          }
-        }
 
-        stage('Provision cluster') {
-          try {
-            sh "docker run --name ${containerPrefix}_provision  --env-file .env " +
-              "${imageName} /bin/bash -c \'" +
-              "export CATTLE_TEST_URL=${CATTLE_TEST_URL} && " +
-              "export ADMIN_TOKEN=${ADMIN_TOKEN} && " +
-              "export USER_TOKEN=${USER_TOKEN} && " +
-              "pytest -v -s --junit-xml=provision.xml -k test_rke_${RANCHER_CLUSTER_TYPE}_host_${RANCHER_CLUSTER_PROFILE} ${testsDir}\'"
-          } catch(err) {
-            buildFail = true
-            echo "Error: " + err
-            echo "Provision cluster failed."
-            currentBuild.result = 'FAILURE'
-          }
-        }
 
         stage('Run preupgrade') {
           try {
